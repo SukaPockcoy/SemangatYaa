@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Selamat Ulang Tahun 🎂</title>
+  <title>Haiii!! Semangat Ya Priti Uttut ❤️‍🔥</title>
 
   <!-- Font dan CSS -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
@@ -14,8 +14,8 @@
   <!-- Halaman Awal -->
   <div id="intro">
     <img src="semangat.jpg" alt="Foto Ulang Tahun">
-    <h1>🎁 Klik tombol di bawah untuk kejutan 🎉</h1>
-    <button id="btnStart">SURPRISE!</button>
+    <h1>🎁Klik Untuk Menambah Semangat🎉</h1>
+    <button id="btnStart">Klik Akuuu!</button>
   </div>
 
   <!-- Musik -->
@@ -26,11 +26,28 @@
   <!-- Halaman Ucapan -->
   <div id="main">
     <canvas id="confetti"></canvas>
-    <h1>🎉 Selamat Ulang Tahun! 🎂</h1>
-    <h2>Semoga panjang umur, sehat selalu, dan bahagia setiap hari 💖</h2>
+    <h1 id="greeting"></h1>
+    <h2>Semoga dihari yang tidak tau mendung atau cerah ini, selalu mendapatkan hal-hal yang menarik dan bahagia ✨🚀🧑‍🚀</h2>
+    <h2>"Angin mulai berhembus, seseorang harus mencoba untuk hidup"</h2>
+    <h2>-Paul Valery</h2>
+
+    <!-- Form skala semangat -->
+    <form id="moodForm" aria-label="Skala semangat">
+      <label for="moodInput">Seberapa semangat kamu hari ini (1-10):</label>
+      <input type="number" 
+             id="moodInput" 
+             name="mood" 
+             min="1" 
+             max="10" 
+             required 
+             placeholder="Ketik angka 1-10">
+      <button type="submit" id="moodSubmit">💝 Kirim 💝</button>
+    </form>
+
+    <p id="moodResult" aria-live="polite"></p>
   </div>
 
   <!-- File JS -->
-  <script src="const intro = document.js" defer></script>
+  <script src="main.js" defer></script>
 </body>
 </html>
