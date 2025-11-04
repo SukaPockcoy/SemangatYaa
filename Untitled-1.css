@@ -6,15 +6,16 @@
 }
 
 body {
-  overflow: hidden;
-  /* Menggunakan variabel --vh yang akan diatur JS */
-  height: calc(var(--vh, 1vh) * 100); 
+  /* 1. Hapus 'overflow: hidden;' agar scroll diizinkan */
+  /* overflow: hidden; */ 
+  /* 2. Ubah 'height' menjadi 'min-height' */
+  min-height: calc(var(--vh, 1vh) * 100); 
+  
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #ffafbd, #ffc3a0);
-  /* Menambah padding agar konten tidak menempel di tepi layar */
-  padding: 15px; 
+  padding: 15px;
 }
 
 /* --- Halaman Awal --- */
