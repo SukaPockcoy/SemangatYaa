@@ -7,11 +7,14 @@
 
 body {
   overflow: hidden;
-  height: 100vh;
+  /* Menggunakan variabel --vh yang akan diatur JS */
+  height: calc(var(--vh, 1vh) * 100); 
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #ffafbd, #ffc3a0);
+  /* Menambah padding agar konten tidak menempel di tepi layar */
+  padding: 15px; 
 }
 
 /* --- Halaman Awal --- */
@@ -27,11 +30,16 @@ body {
   text-align: center;
   transition: opacity 1s ease-in-out;
   z-index: 10;
+  padding: 15px; /* Tambahan padding */
 }
 
 #intro img {
-  width: 250px;
-  height: 250px;
+  /* Membuat gambar responsif */
+  width: 65vw; /* 65% dari lebar viewport */
+  height: 65vw; /* Sama dengan lebar agar tetap bulat */
+  max-width: 250px; /* Batas ukuran maksimal */
+  max-height: 250px; /* Batas ukuran maksimal */
+  
   border-radius: 50%;
   object-fit: cover;
   box-shadow: 0 0 20px rgba(255,255,255,0.8);
@@ -43,6 +51,7 @@ body {
   font-size: 2em;
   margin-bottom: 25px;
   animation: fadeInDown 2s ease-in-out;
+  text-wrap: balance; /* Teks wrap lebih seimbang */
 }
 
 #intro button {
@@ -56,6 +65,7 @@ body {
   cursor: pointer;
   transition: 0.3s;
   animation: fadeInUp 2s ease-in-out;
+  -webkit-tap-highlight-color: transparent; /* Hilangkan highlight tap */
 }
 
 #intro button:hover {
@@ -77,12 +87,14 @@ body {
   font-size: 3em;
   font-weight: 700;
   animation: fadeInDown 2s ease-in-out;
+  text-wrap: balance; /* Teks wrap lebih seimbang */
 }
 
 #main h2 {
   margin-top: 15px;
   font-weight: 400;
   animation: fadeIn 3s ease-in-out;
+  text-wrap: pretty; /* Teks wrap lebih seimbang */
 }
 
 /* Konfeti */
@@ -98,17 +110,14 @@ canvas {
   from { opacity: 0; transform: translateY(-30px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -136,7 +145,11 @@ canvas {
   font-size: 1.1em;
   border: 3px solid #ff69b4;
   border-radius: 25px;
-  width: 200px;
+  
+  /* Membuat input responsif */
+  width: 80%;
+  max-width: 200px; /* Batas ukuran maksimal */
+  
   text-align: center;
   background: rgba(255,255,255,0.9);
   transition: all 0.3s ease;
@@ -151,16 +164,33 @@ canvas {
 #moodSubmit {
   padding: 12px 30px;
   font-family: 'Poppins', sans-serif;
-  font-size: 3em;
+  font-size: 1.1em;
   background: linear-gradient(45deg, #ff69b4, #ff1493);
   color: white;
   border: none;
   border-radius: 25px;
   cursor: pointer;
   transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent; /* Hilangkan highlight tap */
 }
 
 #moodSubmit:hover {
   transform: scale(1.05);
   box-shadow: 0 5px 15px rgba(255,105,180,0.4);
+}
+
+/* Media Query untuk layar kecil (seperti HP) */
+@media (max-width: 400px) {
+  #intro h1 {
+    font-size: 1.8em;
+  }
+  #main h1 {
+    font-size: 2.2em;
+  }
+  #main h2 {
+    font-size: 1em;
+  }
+  #moodForm label {
+    font-size: 1.1em;
+  }
 }
