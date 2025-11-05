@@ -7,7 +7,7 @@
 
 body {
   /* 1. Hapus 'overflow: hidden;' agar scroll diizinkan */
-  /* overflow: hidden; */ 
+  /* overflow: hidden; */
   /* 2. Ubah 'height' menjadi 'min-height' */
   min-height: calc(var(--vh, 1vh) * 100); 
   
