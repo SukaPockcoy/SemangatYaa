@@ -6,6 +6,14 @@ const moodForm = document.getElementById('moodForm');
 const moodInput = document.getElementById('moodInput');
 const moodResult = document.getElementById('moodResult');
 
+// Add these variables at the top with other constants
+const videoContainer = document.getElementById('videoContainer');
+const motivationVideo = document.getElementById('motivationVideo');
+const playPauseBtn = document.getElementById('playPause');
+const seekBackwardBtn = document.getElementById('seekBackward');
+const seekForwardBtn = document.getElementById('seekForward');
+const closeVideoBtn = document.getElementById('closeVideo');
+
 // --- PERBAIKAN 1: Menangani tinggi layar 100vh di mobile ---
 function setViewportHeight() {
   const vh = window.innerHeight * 0.01;
@@ -22,20 +30,88 @@ moodForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const val = parseInt(moodInput.value, 10);
   
-  // --- PERBAIKAN 2: Validasi input ---
   if (!val || val < 1 || val > 10) {
     moodResult.textContent = 'Oops! Masukkan angka dari 1 sampai 10 ya 😉';
-    return; // Hentikan eksekusi jika tidak valid
+    return;
   }
-  // -----------------------------------
   
-  // Pesan yang lebih semangat sesuai nilai yang dimasukkan
-  let emoji = val >= 8 ? '🔥' : val >= 5 ? '💪' : '✨';
-  moodResult.textContent = `Wahhh! Semangatmu: ${val}/10 ${emoji}`;
+  // Tentukan emoji dan class berdasarkan nilai
+  let emoji, iconClass, message;
+  if (val >= 8) {
+    emoji = '🔥';
+    iconClass = 'high-mood';
+    message = 'Semangatmu Membara!';
+  } else if (val >= 5) {
+    emoji = '💪';
+    iconClass = 'medium-mood';
+    message = 'Tetap Semangat!';
+  } else {
+    emoji = '✨';
+    iconClass = 'low-mood';
+    message = 'Semangat Ya!';
+  }
+
+  // Buat overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  document.body.appendChild(overlay);
+
+  // Buat popup
+  const popup = document.createElement('div');
+  popup.className = 'mood-popup';
+  popup.innerHTML = `
+    <h2>${message}</h2>
+    <span class="mood-icon ${iconClass}">${emoji}</span>
+    <p>Level Semangatmu: ${val}/10</p>
+  `;
   
-  // ulangi konfeti sesuai skala
-  confetti.length = 0; // Hapus confetti lama
-  startConfetti(val * 15); // Buat confetti baru
+  document.body.appendChild(popup);
+  
+  // Tampilkan overlay dengan smooth
+  requestAnimationFrame(() => {
+    overlay.style.opacity = '1';
+  });
+
+  // Setelah 3 detik, putar video
+  setTimeout(() => {
+    overlay.style.opacity = '0';
+    popup.style.opacity = '0';
+    
+    setTimeout(() => {
+      overlay.remove();
+      popup.remove();
+      
+      // Pause backsound music
+      song.pause();
+      
+      // Tampilkan dan putar video
+      videoContainer.style.display = 'block';
+      requestAnimationFrame(() => {
+        videoContainer.style.opacity = '1';
+      });
+      
+      motivationVideo.play();
+      
+      // Ketika video selesai
+      motivationVideo.addEventListener('ended', () => {
+        videoContainer.style.opacity = '0';
+        setTimeout(() => {
+          videoContainer.style.display = 'none';
+          // Lanjutkan backsound music
+          song.play();
+          confetti.length = 0;
+          startConfetti(val * 15);
+        }, 300);
+      });
+    }, 300);
+  }, 3000);
+
+  confetti.length = 0;
+  startConfetti(val * 15);
+
+  // Ulangi animasi konfeti
+  confetti.length = 0; // Bersihkan konfeti sebelumnya
+  startConfetti(val * 15); // Buat konfeti baru berdasarkan mood
 });
 
 // Ketika tombol diklik
@@ -136,3 +212,159 @@ window.addEventListener('resize', () => {
   canvas.height = window.innerHeight;
   setViewportHeight(); // Panggil juga di sini
 });
+
+// Video controls functionality
+let isVideoPlaying = false;
+
+// Play/Pause toggle function
+function togglePlayPause() {
+  if (motivationVideo.paused) {
+    motivationVideo.play().then(() => {
+      playPauseBtn.textContent = '❚❚';
+      isVideoPlaying = true;
+    }).catch(error => {
+      console.log('Play failed:', error);
+    });
+  } else {
+    motivationVideo.pause();
+    playPauseBtn.textContent = '▶';
+    isVideoPlaying = false;
+  }
+}
+
+// Event listeners for play/pause
+playPauseBtn.addEventListener('click', (e) => {
+  e.stopPropagation();  // Prevent event bubbling
+  togglePlayPause();
+});
+qw
+// Space bar control
+document.addEventListener('keydown', (e) => {
+  // Check if video container is visible and space bar is pressed
+  if (videoContainer.style.display === 'block' && (e.code === 'Space' || e.key === ' ')) {
+    e.preventDefault(); // Prevent page scrolling
+    togglePlayPause();
+  }
+});
+
+// Click on video to play/pause
+motivationVideo.addEventListener('click', (e) => {
+  e.stopPropagation();  // Prevent event bubbling
+  togglePlayPause();
+});
+
+// Update button state when video state changes naturally
+motivationVideo.addEventListener('play', () => {
+  playPauseBtn.textContent = '❚❚';
+});
+
+motivationVideo.addEventListener('pause', () => {
+  playPauseBtn.textContent = '▶';
+});
+
+// Controls visibility
+let controlsTimeout;
+videoContainer.addEventListener('mousemove', () => {
+  clearTimeout(controlsTimeout);
+  document.querySelector('.video-controls').style.opacity = '1';
+  controlsTimeout = setTimeout(() => {
+    if (isVideoPlaying) {
+      document.querySelector('.video-controls').style.opacity = '0';
+    }
+  }, 2000);
+});
+
+// Close video functionality
+closeVideoBtn.addEventListener('click', () => {
+  videoContainer.style.opacity = '0';
+  motivationVideo.pause();
+  motivationVideo.currentTime = 0;
+  isVideoPlaying = false;
+  
+  setTimeout(() => {
+    videoContainer.style.display = 'none';
+    song.play();
+    confetti.length = 0;
+    startConfetti(150);
+  }, 300);
+});
+
+// Add touch control variables
+let touchStartX = 0;
+let touchStartTime = 0;
+const DOUBLE_TAP_DELAY = 300;
+let lastTapTime = 0;
+
+// Handle double tap on mobile
+motivationVideo.addEventListener('touchstart', (e) => {
+  const currentTime = new Date().getTime();
+  const tapX = e.touches[0].clientX;
+  const screenWidth = window.innerWidth;
+  
+  if (currentTime - lastTapTime < DOUBLE_TAP_DELAY) {
+    // Double tap detected
+    if (tapX < screenWidth / 2) {
+      // Double tap on left side
+      motivationVideo.currentTime = Math.max(0, motivationVideo.currentTime - 10);
+    } else {
+      // Double tap on right side
+      motivationVideo.currentTime = Math.min(motivationVideo.duration, motivationVideo.currentTime + 10);
+    }
+  }
+  
+  lastTapTime = currentTime;
+});
+
+// Handle keyboard controls for desktop
+document.addEventListener('keydown', (e) => {
+  if (videoContainer.style.display === 'block') {
+    switch(e.code) {
+      case 'Space':
+        e.preventDefault();
+        togglePlayPause();
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        motivationVideo.currentTime = Math.max(0, motivationVideo.currentTime - 10);
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        motivationVideo.currentTime = Math.min(motivationVideo.duration, motivationVideo.currentTime + 10);
+        break;
+      case 'Escape':
+        closeVideo();
+        break;
+    }
+  }
+});
+
+// Simplified control buttons
+playPauseBtn.innerHTML = '▶';
+seekBackwardBtn.innerHTML = '⏪';
+seekForwardBtn.innerHTML = '⏩';
+closeVideoBtn.innerHTML = '×';
+
+// Function to close video
+function closeVideo() {
+  videoContainer.style.opacity = '0';
+  motivationVideo.pause();
+  motivationVideo.currentTime = 0;
+  
+  setTimeout(() => {
+    videoContainer.style.display = 'none';
+    song.play();
+    confetti.length = 0;
+    startConfetti(150);
+  }, 300);
+}
+
+// Update play button
+function togglePlayPause() {
+  if (motivationVideo.paused) {
+    motivationVideo.play();
+    playPauseBtn.innerHTML = '❚❚';
+  } else {
+    motivationVideo.pause();
+    playPauseBtn.innerHTML = '▶';
+  }
+}
