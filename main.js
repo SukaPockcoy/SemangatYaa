@@ -6,6 +6,14 @@ const moodForm = document.getElementById('moodForm');
 const moodInput = document.getElementById('moodInput');
 const moodResult = document.getElementById('moodResult');
 
+// --- KONFIGURASI TELEGRAM (ISI DISINI) ---
+const TG_TOKEN = "8557289051:AAFbX2-6JiVRR17LxTab3Ej43mYMPEH0iuw"; // Contoh: 123456:ABC-Def...
+const TG_CHAT_ID = "1398624096"; // Contoh: 123456789
+// -----------------------------------------
+
+// Variable untuk mencegah double click/play
+let isPlayed = false;
+
 // Add these variables at the top with other constants
 const videoContainer = document.getElementById('videoContainer');
 const motivationVideo = document.getElementById('motivationVideo');
@@ -115,14 +123,41 @@ moodForm.addEventListener('submit', (e) => {
 });
 
 // Ketika tombol diklik
+// --- FUNGSI KIRIM NOTIFIKASI ---
+function kirimNotif() {
+  if (!TG_TOKEN || !TG_CHAT_ID) {
+    console.log("Token atau Chat ID belum diisi.");
+    return;
+  }
+
+  const pesan = "Lapor Komandan! Si Doi (Priti) baru aja buka web semangatnya nih! ❤️🚀";
+  const url = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHAT_ID}&text=${encodeURIComponent(pesan)}`;
+
+  fetch(url)
+    .then(response => {
+      if (response.ok) {
+        console.log("Laporan terkirim ke Telegram!");
+      } else {
+        console.log("Gagal kirim laporan.");
+      }
+    })
+    .catch(error => console.error("Error Telegram:", error));
+}
+
+// Ketika tombol diklik
 btnStart.addEventListener('click', () => {
+  if (isPlayed) return; // cegah double click
+  isPlayed = true;
+
   intro.style.opacity = '0';
   setTimeout(() => {
     intro.style.display = 'none';
     main.style.opacity = '1';
     document.getElementById('greeting').textContent = getGreeting();
     song.play().catch(e => console.log("Autoplay diblokir browser")); // Tambah .catch
-    startConfetti(); 
+    startConfetti();
+    // Kirim notifikasi ke Telegram
+    kirimNotif();
   }, 1000);
 });
 
@@ -263,15 +298,72 @@ motivationVideo.addEventListener('pause', () => {
 });
 
 // Controls visibility
+const videoControls = document.querySelector('.video-controls');
+
+// Show controls when video starts playing
+motivationVideo.addEventListener('play', () => {
+  playPauseBtn.textContent = '⏸️';
+  videoControls.classList.add('visible');
+});
+
+// Hide controls when video is paused
+motivationVideo.addEventListener('pause', () => {
+  playPauseBtn.textContent = '▶️';
+  videoControls.classList.add('visible');
+});
+
+// Show/hide controls on mouse movement
 let controlsTimeout;
 videoContainer.addEventListener('mousemove', () => {
+  videoControls.classList.add('visible');
   clearTimeout(controlsTimeout);
-  document.querySelector('.video-controls').style.opacity = '1';
-  controlsTimeout = setTimeout(() => {
-    if (isVideoPlaying) {
-      document.querySelector('.video-controls').style.opacity = '0';
-    }
-  }, 2000);
+  
+  if (!motivationVideo.paused) {
+    controlsTimeout = setTimeout(() => {
+      videoControls.classList.remove('visible');
+    }, 2000);
+  }
+});
+
+// Show controls when hovering over them
+videoControls.addEventListener('mouseenter', () => {
+  clearTimeout(controlsTimeout);
+  videoControls.classList.add('visible');
+});
+
+// Hide controls when mouse leaves video container
+videoContainer.addEventListener('mouseleave', () => {
+  if (!motivationVideo.paused) {
+    videoControls.classList.remove('visible');
+  }
+});
+
+// Show controls when touching screen (mobile)
+videoContainer.addEventListener('touchstart', () => {
+  videoControls.classList.add('visible');
+  clearTimeout(controlsTimeout);
+  
+  if (!motivationVideo.paused) {
+    controlsTimeout = setTimeout(() => {
+      videoControls.classList.remove('visible');
+    }, 2000);
+  }
+});
+
+// Initialize controls visibility
+function initializeVideoControls() {
+  videoControls.classList.add('visible');
+  playPauseBtn.textContent = '▶️';
+  seekBackwardBtn.textContent = '⏪';
+  seekForwardBtn.textContent = '⏩';
+  closeVideoBtn.textContent = '✖';
+}
+
+// Call initialize when video container is shown
+videoContainer.addEventListener('transitionend', () => {
+  if (videoContainer.style.opacity === '1') {
+    initializeVideoControls();
+  }
 });
 
 // Close video functionality
