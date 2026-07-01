@@ -238,13 +238,13 @@ function getGreeting() {
   let greeting;
 
   if (hour >= 4 && hour < 11) {
-    greeting = "🌅 Selamat Pagi Pritii yang Pretty 🎂";
+    greeting = "🌅 Selamat Pagi Pretty 🎂";
   } else if (hour >= 11 && hour < 15) {
-    greeting = "☀️ Selamat Siang Pritii yang Pretty 🎂";
+    greeting = "☀️ Selamat Siang Pretty 🎂";
   } else if (hour >= 15 && hour < 18) {
-    greeting = "🌤️ Selamat Sore Pritii yang Pretty 🎂";
+    greeting = "🌤️ Selamat Sore Pretty 🎂";
   } else {
-    greeting = "🌙 Selamat Malam Pritii yang Pretty 🎂";
+    greeting = "🌙 Selamat Malam Pretty 🎂";
   }
 
   return greeting;
